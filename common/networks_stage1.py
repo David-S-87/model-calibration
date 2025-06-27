@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
-from config_template import get_param_names
+from .config_template import get_param_names
 
 
 class Stage1Network(nn.Module):
