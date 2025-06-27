@@ -4,7 +4,12 @@ import numpy as np
 from scipy.stats import norm
 
 # Import simulation functions
-from price_paths import simulate_gbm, simulate_mjd, simulate_heston, simulate_bates
+from .price_paths import (
+    simulate_gbm,
+    simulate_mjd,
+    simulate_heston,
+    simulate_bates,
+)
 
 
 def price_option(

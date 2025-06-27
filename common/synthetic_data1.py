@@ -4,9 +4,14 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from config_template import sample_param_set, get_param_names
-from price_paths import simulate_gbm, simulate_mjd, simulate_heston, simulate_bates
-from summary_stats import compute_summary_stats
+from .config_template import sample_param_set, get_param_names
+from .price_paths import (
+    simulate_gbm,
+    simulate_mjd,
+    simulate_heston,
+    simulate_bates,
+)
+from .summary_stats import compute_summary_stats
 
 # Map model types to simulation functions
 _SIM_FUNCS = {
