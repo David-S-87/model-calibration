@@ -53,56 +53,55 @@ def price_option_batch(
     r: float,
     params: dict,
     n_paths: int = 10000,
+    n_steps: int = 252,
     antithetic: bool = True,
     seed: int = None
 ) -> np.ndarray:
     """
     Price a grid of vanilla European options for arrays of strikes K and maturities T.
-    Returns an array of shape (len(K), len(T)).
+    Returns a price grid of shape (len(K), len(T)).
     """
+
     model_type = model_type.lower()
     option_type = option_type.lower()
 
-    # For GBM, vectorize BS formula
     if model_type == "gbm":
         sigma = params.get('sigma')
-        # Broadcast sigma, S0, r across grid
         price_grid = np.zeros((len(K), len(T)))
         for i, Ki in enumerate(K):
             for j, Tj in enumerate(T):
-                price_grid[i, j] = black_scholes_price(
-                    S0, Ki, Tj, r, sigma, option_type
-                )
+                price_grid[i, j] = black_scholes_price(S0, Ki, Tj, r, sigma, option_type)
         return price_grid
 
-    # Monte Carlo for other models
-    # Determine max steps for longest maturity
-    steps = (T * 252).astype(int)
-    max_steps = int(np.max(steps))
-
-    # Simulate once up to max_steps
-    prices = {
+    # MC models: simulate full paths once per parameter set
+    sim_func = {
         'mjd': simulate_mjd,
         'heston': simulate_heston,
         'bates': simulate_bates
     }.get(model_type, None)
 
-    if prices is None:
-        raise ValueError(f"Unsupported model_type for batch pricing: {model_type}")
+    if sim_func is None:
+        raise ValueError(f"Unsupported model_type: {model_type}")
 
-    paths = prices(n_paths // (2 if antithetic else 1), max_steps + 1, S0, params, seed=seed)
+    steps_per_T = (T * n_steps).astype(int)
+    max_steps = int(np.max(steps_per_T))
+
+    base_paths = sim_func(n_paths // (2 if antithetic else 1), max_steps + 1, S0, params, seed=seed)
+
     if antithetic:
-        # assume simulate_ returns symmetric paths when half-sample; append negated log paths
-        # simplistic: concatenate same paths for demonstration; for true antithetic, implement in price_paths
-        paths = np.vstack([paths, paths])
+        # Use antithetic variates (mirror the random component)
+        paths = np.vstack([base_paths, 2 * S0 - base_paths])
+    else:
+        paths = base_paths
 
-    # Compute discounted payoffs for each K, T
     price_grid = np.zeros((len(K), len(T)))
-    for j, tj in enumerate(steps):
-        ST = paths[:, tj]
+
+    for j, step in enumerate(steps_per_T):
+        ST = paths[:, step]
         for i, Ki in enumerate(K):
-            pay = payoff(ST, Ki, option_type)
-            price_grid[i, j] = np.exp(-r * T[j]) * np.mean(pay)
+            discounted_payoff = np.exp(-r * T[j]) * np.mean(payoff(ST, Ki, option_type))
+            price_grid[i, j] = discounted_payoff
+
     return price_grid
 
 
