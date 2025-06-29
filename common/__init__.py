@@ -35,3 +35,8 @@ from .networks_stage1 import (
     get_stage1_network,
     train_stage1_model
 )
+
+from .synthetic_data2 import (
+    generate_stage2_dataset
+)
+
