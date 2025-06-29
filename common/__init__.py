@@ -1,17 +1,3 @@
-from .summary_stats import (
-    compute_summary_stats,
-    _compute_returns,
-    _compute_max_drawdown,
-    _autocorr
-)
-
-from .price_paths import (
-    simulate_gbm,
-    simulate_mjd,
-    simulate_heston,
-    simulate_bates
-)
-
 from .config_template import (
     sample_gbm_params,
     sample_mjd_params,
@@ -19,15 +5,12 @@ from .config_template import (
     sample_bates_params
 )
 
-from .options import (
-    price_option,
-    price_option_batch,
-    monte_carlo_price,
-    black_scholes_price
-)
+# data_loader.py
 
-from .synthetic_data1 import (
-    generate_stage1_dataset
+from .loss_functions import (
+    stage1_mse,
+    stage1_log_mse,
+    stage1_weighted_mse
 )
 
 from .networks_stage1 import (
@@ -36,7 +19,41 @@ from .networks_stage1 import (
     train_stage1_model
 )
 
+# networks_stage2.py
+
+# optimizers.py
+
+from .options import (
+    price_option,
+    price_option_batch,
+    monte_carlo_price,
+    black_scholes_price
+)
+
+# posteriors.py
+
+from .price_paths import (
+    simulate_gbm,
+    simulate_mjd,
+    simulate_heston,
+    simulate_bates
+)
+
+# priors.py
+
+from .summary_stats import (
+    compute_summary_stats,
+    _compute_returns,
+    _compute_max_drawdown,
+    _autocorr
+)
+
+from .synthetic_data1 import (
+    generate_stage1_dataset
+)
+
 from .synthetic_data2 import (
     generate_stage2_dataset
 )
 
+# utils.py
