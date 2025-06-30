@@ -12,8 +12,9 @@ import torch
 from collections import defaultdict
 from pathlib import Path
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(project_root)
+# --- Setup path to project root ---
+project_root = Path(__file__).resolve().parents[3]
+sys.path.append(str(project_root))
 
 from common import get_stage1_network
 
@@ -34,18 +35,35 @@ def load_stage1_model():
     model.eval()
     return model
 
-# --- Load and Group Data ---
+# --- Construct option features from strikes, maturities, and S0 ---
+def construct_option_features(strikes, maturities, S0):
+    num_options, num_sets = strikes.shape
+    features = []
+    for i in range(num_sets):
+        strike_i = strikes[:, i]
+        maturity_i = maturities[:, i]
+        S0_i = S0[i] if S0.ndim > 0 else S0
+        S0_vec = np.full_like(strike_i, S0_i)
+        # You can add more components here if needed
+        feat = np.stack([strike_i, maturity_i, S0_vec], axis=1)  # shape: (num_options, 3)
+        features.append(feat)
+    return features
+
+# --- Group Stage 2 Data by Set ID ---
 def group_stage2_data(stage2_data):
+    features_list = construct_option_features(stage2_data["strikes"],
+                                              stage2_data["maturities"],
+                                              stage2_data["S0"])
     grouped = defaultdict(lambda: {"features": [], "prices": [], "true_params": None})
-    for x, y, p, sid in zip(stage2_data["option_features"],
-                            stage2_data["option_prices"],
-                            stage2_data["true_params"],
-                            stage2_data["set_ids"]):
-        grouped[sid]["features"].append(x)
-        grouped[sid]["prices"].append(y)
-        grouped[sid]["true_params"] = p
+    for set_id, (feat, price, param) in enumerate(zip(features_list,
+                                                      stage2_data["option_prices"],
+                                                      stage2_data["true_params"])):
+        grouped[set_id]["features"] = feat
+        grouped[set_id]["prices"] = price
+        grouped[set_id]["true_params"] = param
     return grouped
 
+# --- Load Summary Statistics ---
 def load_summary_stats():
     data = np.load(STAGE1_DATA_PATH)
     return dict(enumerate(data["summary_stats"]))  # map set_id → stats
