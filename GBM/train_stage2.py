@@ -3,26 +3,60 @@
 import os, sys
 import numpy as np
 import torch
-import matplotlib.pyplot as plt
-import torch.nn as nn
-from pathlib import Path
+from torch.utils.data import Dataset, DataLoader
 
-# ─ make sure common/ is importable ──────────────────────────────────────────
-project_root = Path(__file__).resolve().parents[1]
-sys.path.append(str(project_root))
+# --- Project root on PYTHONPATH so we can import common ---
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(project_root)
 
-# ─ your exact MLP definition ───────────────────────────────────────────────
-class Stage2MLP(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dims=[256,256]):
-        super().__init__()
-        layers, prev = [], input_dim
-        for h in hidden_dims:
-            layers += [nn.Linear(prev, h), nn.ReLU()]
-            prev = h
-        layers.append(nn.Linear(prev, output_dim))
-        self.net = nn.Sequential(*layers)
-    def forward(self, x):
-        return self.net(x)
+from common.networks_stage2   import get_stage2_network
+from common.loss_functions    import stage2_mse_with_prior_reg
+
+# --- Config ---
+DATA_PATH       = r"C:\Users\david\BathUni\MA50290_24\model_calibration\data\synthetic_data2\GBM\grouped_stage2_gbm.npz"
+CHECKPOINT_DIR  = os.path.join(os.path.dirname(__file__), "checkpoints")
+SAVE_PATH       = os.path.join(CHECKPOINT_DIR, "stage2_gbm_model.pth")
+
+BATCH_SIZE      = 32
+EPOCHS          = 100
+LEARNING_RATE   = 1e-3
+PRIOR_REG_ALPHA = 0.1
+DEVICE          = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+class Stage2GBMDataset(Dataset):
+    """
+    Dataset for Stage 2 GBM:
+    - priors:        (N, 2)
+    - option_feats:  (N, M, F)
+    - option_prices: (N, M)
+    - true_params:   (N, 2)
+    We flatten [option_feats, option_prices, priors] into one input vector.
+    """
+    def __init__(self, data_path):
+        arr = np.load(data_path)
+        self.priors = torch.tensor(arr["priors"], dtype=torch.float32)
+        self.feats  = torch.tensor(arr["option_features"], dtype=torch.float32)
+        self.prices = torch.tensor(arr["option_prices"], dtype=torch.float32)
+        self.targets= torch.tensor(arr["true_params"], dtype=torch.float32)
+
+        # Dimensions
+        self.N, self.M, self.F = self.feats.shape   # N sets, M options, F features per option
+        self.P = self.priors.shape[1]               # number of parameters (2 for GBM)
+
+    def __len__(self):
+        return self.N
+
+    def __getitem__(self, idx):
+        # Flatten option features and prices
+        feat_flat  = self.feats[idx].view(-1)       # shape: (M*F,)
+        price_flat = self.prices[idx].view(-1)      # shape: (M,)
+        prior      = self.priors[idx]               # shape: (P,)
+        # Concatenate into one input vector
+        x = torch.cat([feat_flat, price_flat, prior], dim=0)
+        y = self.targets[idx]                       # shape: (P,)
+        return x, prior, y
+
 
 def main():
     # paths

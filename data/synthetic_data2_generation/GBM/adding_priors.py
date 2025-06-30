@@ -12,7 +12,6 @@ import torch
 from collections import defaultdict
 from pathlib import Path
 
-# --- Setup path to project root ---
 project_root = Path(__file__).resolve().parents[3]
 sys.path.append(str(project_root))
 
