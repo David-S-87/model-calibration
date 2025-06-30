@@ -1,0 +1,23 @@
+Model,level_1,Most Correlated Stat,Max |Correlation|
+GBM,mu,stat_0,0.0904
+GBM,sigma,stat_8,0.8867
+MJD,mu,stat_0,0.084
+MJD,sigma,stat_1,0.881
+MJD,lambda,stat_0,0.084
+MJD,mu_J,stat_1,0.881
+MJD,sigma_J,stat_8,0.0863
+Heston,mu,stat_0,0.1647
+Heston,v0,stat_1,0.319
+Heston,theta,stat_1,0.3228
+Heston,kappa,stat_3,0.1176
+Heston,sigma_v,stat_10,0.4522
+Heston,rho,stat_2,0.1158
+Bates,mu,stat_0,0.1581
+Bates,v0,stat_1,0.3118
+Bates,theta,stat_1,0.3313
+Bates,kappa,stat_5,0.092
+Bates,sigma_v,stat_10,0.4297
+Bates,rho,stat_2,0.0407
+Bates,lambda,stat_0,0.1581
+Bates,mu_J,stat_1,0.3118
+Bates,sigma_J,stat_1,0.3313

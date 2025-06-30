@@ -1,28 +1,23 @@
 # train_stage1.py
-
 """
 Train Stage 1 prior network for the GBM model:
 maps summary statistics → [mu, sigma].
-
-Loads synthetic data from data/synthetic_data1/GBM, trains an MLP, and
-saves the checkpoint in GBM/checkpoints.
 """
 
 import os
 import sys
-
-# Ensure project root is on PYTHONPATH so we can import 'common'
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(project_root)
-
 import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
+# Ensure project root is on PYTHONPATH
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(project_root)
+
 from common import get_stage1_network, stage1_mse
 
-# Configuration
+# --- Config ---
 DATA_PATH = r"C:\Users\david\BathUni\MA50290_24\model_calibration\data\synthetic_data1\GBM\stage1_gbm_dataset.npz"
 CHECKPOINT_DIR = os.path.join(os.path.dirname(__file__), "checkpoints")
 SAVE_PATH = os.path.join(CHECKPOINT_DIR, "stage1_gbm_model.pth")
@@ -32,14 +27,20 @@ EPOCHS = 50
 LEARNING_RATE = 1e-3
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# --- Prioritised summary stats for GBM ---
+STAT_WEIGHTS = torch.tensor(
+    [3.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0, 1.0, 1.0, 1.0], dtype=torch.float32
+)  # boosts stat_0 and stat_8
+
 def main():
     # --- Load synthetic data ---
     data = np.load(DATA_PATH)
-    X = data["summary_stats"]    # shape: (N, n_stats)
-    y = data["true_params"]      # shape: (N, 2) for [mu, sigma]
+    X = data["summary_stats"]
+    y = data["true_params"]
 
     # Convert to torch tensors
     X_tensor = torch.tensor(X, dtype=torch.float32)
+    X_tensor *= STAT_WEIGHTS  # Apply importance weighting
     y_tensor = torch.tensor(y, dtype=torch.float32)
 
     dataset = TensorDataset(X_tensor, y_tensor)

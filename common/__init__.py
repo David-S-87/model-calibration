@@ -19,7 +19,11 @@ from .networks_stage1 import (
     train_stage1_model
 )
 
-# networks_stage2.py
+from .networks_stage2 import (
+    Stage2MLP,
+    get_stage2_network,
+    Stage2DeepSets
+)
 
 # optimizers.py
 
