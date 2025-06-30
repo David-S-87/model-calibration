@@ -12,9 +12,8 @@ import torch
 from collections import defaultdict
 from pathlib import Path
 
-# --- Path Setup ---
-project_root = Path(__file__).resolve().parents[1]
-sys.path.append(str(project_root))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(project_root)
 
 from common import get_stage1_network
 
