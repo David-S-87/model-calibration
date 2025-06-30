@@ -10,7 +10,9 @@ from .config_template import (
 from .loss_functions import (
     stage1_mse,
     stage1_log_mse,
-    stage1_weighted_mse
+    stage1_weighted_mse,
+    stage2_mse,
+    stage2_mse_with_prior_reg
 )
 
 from .networks_stage1 import (
