@@ -12,8 +12,9 @@ import torch
 from collections import defaultdict
 from pathlib import Path
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(project_root)
+# Resolve project root (repo root) so we can import the ``common`` package
+project_root = Path(__file__).resolve().parents[3]
+sys.path.append(str(project_root))
 
 from common import get_stage1_network
 

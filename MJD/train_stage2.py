@@ -11,18 +11,20 @@ import sys
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
+from pathlib import Path
 
 # --- Project root on PYTHONPATH so we can import common ---
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(project_root)
+# Repository root for ``common`` imports
+project_root = Path(__file__).resolve().parents[1]
+sys.path.append(str(project_root))
 
 from common.networks_stage2 import get_stage2_network
 from common.loss_functions  import stage2_mse_with_prior_reg
 
 # --- Config ---
-DATA_PATH       = r"C:\Users\david\BathUni\MA50290_24\model_calibration\data\synthetic_data2\MJD\grouped_stage2_mjd.npz"
-CHECKPOINT_DIR  = os.path.join(os.path.dirname(__file__), "checkpoints")
-SAVE_PATH       = os.path.join(CHECKPOINT_DIR, "stage2_mjd_model.pth")
+DATA_PATH      = project_root / "data" / "synthetic_data2" / "MJD" / "grouped_stage2_mjd.npz"
+CHECKPOINT_DIR = Path(__file__).resolve().parent / "checkpoints"
+SAVE_PATH      = CHECKPOINT_DIR / "stage2_mjd_model.pth"
 
 BATCH_SIZE      = 32
 EPOCHS          = 100

@@ -12,7 +12,8 @@ import torch
 from collections import defaultdict
 from pathlib import Path
 
-project_root = Path(__file__).resolve().parents[1]
+# Resolve repo root to make ``common`` importable
+project_root = Path(__file__).resolve().parents[3]
 sys.path.append(str(project_root))
 
 from common import get_stage1_network
